@@ -1,0 +1,17 @@
+bin/
+obj/
+publish/
+installer/
+.vs/
+*.user
+*.suo
+*.iss
+*.exe
+*.dll
+*.zip
+*.mp3
+*.wav
+*.pfx
+*.pem
+*.key
+*.env

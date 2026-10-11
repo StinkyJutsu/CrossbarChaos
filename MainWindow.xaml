@@ -1,0 +1,733 @@
+﻿
+<Window x:Class="CrossbarChaos.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Crossbar Chaos"
+        Height="540" Width="800"
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        Foreground="White"
+        FontFamily="Segoe UI">
+
+    <Window.Resources>
+        <Style x:Key="RoundButton" TargetType="Button">
+            <Setter Property="Background" Value="#304358"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="12"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="TitleButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Background"
+                                        Value="#304358"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Rounded volume slider track -->
+        <Style x:Key="ChaosSliderTrackButton"
+               TargetType="RepeatButton">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border Background="{TemplateBinding Background}"
+                                Height="5"
+                                CornerRadius="3"
+                                VerticalAlignment="Center"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Rounded volume slider -->
+        <Style x:Key="ChaosVolumeSlider" TargetType="Slider">
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Height="22">
+                            <Track x:Name="PART_Track"
+                                   VerticalAlignment="Center"
+                                   Height="18"
+                                   Minimum="{TemplateBinding Minimum}"
+                                   Maximum="{TemplateBinding Maximum}"
+                                   Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton
+                                        Command="Slider.DecreaseLarge"
+                                        Background="#607F9D"
+                                        Style="{StaticResource ChaosSliderTrackButton}"/>
+                                </Track.DecreaseRepeatButton>
+
+                                <Track.Thumb>
+                                    <Thumb Width="14" Height="14">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Width="14"
+                                                        Height="14"
+                                                        CornerRadius="7"
+                                                        Background="#AAB7C8"
+                                                        BorderBrush="#DDE5EF"
+                                                        BorderThickness="1"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton
+                                        Command="Slider.IncreaseLarge"
+                                        Background="#304358"
+                                        Style="{StaticResource ChaosSliderTrackButton}"/>
+                                </Track.IncreaseRepeatButton>
+
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Audio Output dropdown -->
+        <Style x:Key="ChaosAudioComboBox" TargetType="ComboBox">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#17212D"/>
+            <Setter Property="BorderBrush" Value="#304358"/>
+            <Setter Property="MaxDropDownHeight" Value="200"/>
+
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+
+                    <Style TargetType="ComboBoxItem">
+                        <EventSetter Event="RequestBringIntoView"
+                                     Handler="AudioOutputItem_RequestBringIntoView"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Padding" Value="0"/>
+
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ComboBoxItem">
+                                    <Border x:Name="ItemBorder"
+                                            Background="Transparent"
+                                            CornerRadius="7"
+                                            Padding="10,8">
+                                        <ContentPresenter VerticalAlignment="Center"/>
+                                    </Border>
+
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsHighlighted" Value="True">
+                                            <Setter TargetName="ItemBorder"
+                                                    Property="Background"
+                                                    Value="#304358"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="ItemBorder"
+                                                    Property="Background"
+                                                    Value="#263F53"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border x:Name="MainBorder"
+                                    Background="#17212D"
+                                    BorderBrush="#304358"
+                                    BorderThickness="1"
+                                    CornerRadius="9">
+
+                                <Grid>
+                                    <ContentPresenter
+                                        Margin="11,0,30,0"
+                                        Content="{TemplateBinding SelectionBoxItem}"
+                                        ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                        VerticalAlignment="Center"
+                                        IsHitTestVisible="False"/>
+
+                                    <Path Data="M 0 0 L 5 5 L 10 0"
+                                          Stroke="#AAB7C8"
+                                          StrokeThickness="2"
+                                          StrokeStartLineCap="Round"
+                                          StrokeEndLineCap="Round"
+                                          HorizontalAlignment="Right"
+                                          VerticalAlignment="Center"
+                                          Margin="0,0,12,0"/>
+                                </Grid>
+                            </Border>
+
+                            <ToggleButton
+                                Focusable="False"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="Transparent"/>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+
+                            <Popup x:Name="PART_Popup"
+                                   Placement="Bottom"
+                                   VerticalOffset="4"
+                                   AllowsTransparency="True"
+                                   StaysOpen="True"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}">
+
+                                <Border Background="#17212D"
+                                        BorderBrush="#304358"
+                                        BorderThickness="1"
+                                        CornerRadius="9"
+                                        Padding="4"
+                                        MinWidth="{Binding ActualWidth, ElementName=MainBorder}">
+
+
+                                    <ScrollViewer
+                                        MaxHeight="200"
+                                        CanContentScroll="True"
+                                        VerticalScrollBarVisibility="Auto"
+                                        HorizontalScrollBarVisibility="Disabled">
+
+                                        <ScrollViewer.Resources>
+                                            <Style TargetType="ScrollBar">
+                                                <Setter Property="Width" Value="12"/>
+                                                <Setter Property="Background" Value="Transparent"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ScrollBar">
+                                                            <Border Background="Transparent"
+                                                                    CornerRadius="6"
+                                                                    Padding="3,2">
+
+                                                                <Track x:Name="PART_Track"
+                                                                       IsDirectionReversed="True"
+                                                                       Minimum="{TemplateBinding Minimum}"
+                                                                       Maximum="{TemplateBinding Maximum}"
+                                                                       ViewportSize="{TemplateBinding ViewportSize}"
+                                                                       Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+
+                                                                    <Track.DecreaseRepeatButton>
+                                                                        <RepeatButton Command="ScrollBar.PageUpCommand"
+                                                                                      Opacity="0"
+                                                                                      Focusable="False"/>
+                                                                    </Track.DecreaseRepeatButton>
+
+                                                                    <Track.Thumb>
+                                                                        <Thumb MinHeight="18">
+                                                                            <Thumb.Template>
+                                                                                <ControlTemplate TargetType="Thumb">
+                                                                                    <Border x:Name="ThumbBorder"
+                                                                                            Background="#506B85"
+                                                                                            CornerRadius="4"/>
+
+                                                                                    <ControlTemplate.Triggers>
+                                                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                                                            <Setter TargetName="ThumbBorder"
+                                                                                                    Property="Background"
+                                                                                                    Value="#7895B0"/>
+                                                                                        </Trigger>
+                                                                                    </ControlTemplate.Triggers>
+                                                                                </ControlTemplate>
+                                                                            </Thumb.Template>
+                                                                        </Thumb>
+                                                                    </Track.Thumb>
+
+                                                                    <Track.IncreaseRepeatButton>
+                                                                        <RepeatButton Command="ScrollBar.PageDownCommand"
+                                                                                      Opacity="0"
+                                                                                      Focusable="False"/>
+                                                                    </Track.IncreaseRepeatButton>
+
+                                                                </Track>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ScrollViewer.Resources>
+
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+
+
+                                </Border>
+                            </Popup>
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="MainBorder"
+                                        Property="BorderBrush"
+                                        Value="#607F9D"/>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="MainBorder"
+                                        Property="Opacity"
+                                        Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+
+
+    <Border Background="#121820"
+            BorderBrush="#304358"
+            BorderThickness="1"
+            CornerRadius="16">
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="36"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Custom title bar -->
+            <Grid Grid.Row="0"
+                  Background="Transparent"
+                  MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Crossbar Chaos"
+                           Margin="16,0,0,0"
+                           FontSize="12"
+                           Foreground="#DDE5EF"
+                           VerticalAlignment="Center"/>
+
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            Margin="0,0,8,0">
+
+                    <Button Content="—"
+                            Style="{StaticResource TitleButton}"
+                            Click="MinimizeButton_Click"/>
+
+                    <Button Content="✕"
+                            Style="{StaticResource TitleButton}"
+                            Click="CloseButton_Click"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Main interface -->
+            <Grid Grid.Row="1" Margin="22,12,22,18">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="18"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="18"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Header -->
+                <StackPanel Grid.Row="0">
+                    <TextBlock Text="Crossbar Chaos"
+                               FontSize="27"
+                               FontWeight="Bold"/>
+                    <TextBlock Text="Randomize your Rocket League crossbar sounds"
+                               Foreground="#AAB7C8"
+                               FontSize="13"
+                               Margin="0,5,0,0"/>
+                </StackPanel>
+
+
+                <!-- Status and Audio Output -->
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="260"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Sound Randomizer -->
+                    <Border Grid.Column="0"
+                            Background="#202B38"
+                            CornerRadius="14"
+                            Padding="16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel>
+                                <TextBlock Text="Sound Randomizer"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"/>
+                                <TextBlock x:Name="ConnectionText"
+                                           Text="Waiting for Rocket League"
+                                           Foreground="#AAB7C8"
+                                           FontSize="12"
+                                           Margin="0,5,0,0"/>
+                            </StackPanel>
+
+
+                            <Button x:Name="RandomizerToggle"
+                                    Grid.Column="1"
+                                    Content="Disabled"
+                                    Background="#1A2430"
+                                    Foreground="#FF6464"
+                                    BorderBrush="#3A5168"
+                                    BorderThickness="1"
+                                    Padding="14,6"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Cursor="Hand"
+                                    ToolTip="Click to enable or disable Crossbar Chaos"
+                                    Click="RandomizerToggle_Click"
+                                    VerticalAlignment="Center">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="10"
+                                                Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                        </Grid>
+                    </Border>
+
+                    <!-- Audio Output -->
+                    <Border Grid.Column="2"
+                            Background="#202B38"
+                            CornerRadius="14"
+                            Padding="16">
+                        <StackPanel>
+                            <TextBlock Text="Audio Output"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"/>
+
+
+                            <ComboBox x:Name="AudioOutputComboBox"
+                                      Style="{StaticResource ChaosAudioComboBox}"
+
+                                      Height="30"
+                                      Margin="0,8,0,0"
+                                      Background="#17212D"
+                                      Foreground="White"
+                                      BorderBrush="#304358"
+                                      BorderThickness="1"
+                                      Padding="8,3"
+
+                                      SelectedIndex="0"
+                                      Loaded="AudioOutputComboBox_Loaded">
+                                <ComboBoxItem Content="Windows Default"/>
+
+                            </ComboBox>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+
+                <!-- Sound Library -->
+                <Border Grid.Row="4"
+                        Background="#202B38"
+                        CornerRadius="14"
+                        Padding="16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="12"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="12"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="Sound Library"
+                                   FontSize="17"
+                                   FontWeight="SemiBold"/>
+
+
+
+
+                        <Border Grid.Row="2"
+                                Background="#17212D"
+                                CornerRadius="10"/>
+
+                        <ListBox x:Name="SoundList"
+                                 Grid.Row="2"
+                                 Loaded="SoundList_Loaded"
+
+                                 Background="Transparent"
+
+                                 Foreground="White"
+                                 BorderThickness="0"
+                                 Padding="8"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 VirtualizingStackPanel.IsVirtualizing="True"
+
+                                 VirtualizingStackPanel.VirtualizationMode="Recycling">
+
+                            <ListBox.Resources>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
+                                                 Color="#17212D"/>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
+                                                 Color="White"/>
+
+                                <!-- Rounded Sound Library scrollbar -->
+                                <Style TargetType="ScrollBar">
+                                    <Setter Property="Width" Value="12"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ScrollBar">
+
+                                                <Border Background="#17212D"
+                                                        CornerRadius="6"
+                                                        Padding="3,2">
+
+
+                                                    <Track x:Name="PART_Track"
+                                                           IsDirectionReversed="True"
+                                                           Minimum="{TemplateBinding Minimum}"
+                                                           Maximum="{TemplateBinding Maximum}"
+                                                           ViewportSize="NaN"
+                                                           Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+
+                                                        <Track.DecreaseRepeatButton>
+                                                            <RepeatButton Command="ScrollBar.PageUpCommand"
+                                                                          Opacity="0"
+                                                                          Focusable="False"/>
+                                                        </Track.DecreaseRepeatButton>
+
+                                                        <Track.Thumb>
+
+                                                            <Thumb Height="36" MinHeight="36">
+
+                                                                <Thumb.Template>
+                                                                    <ControlTemplate TargetType="Thumb">
+                                                                        <Border x:Name="ThumbBorder"
+                                                                                Background="#506B85"
+                                                                                CornerRadius="4"/>
+
+                                                                        <ControlTemplate.Triggers>
+                                                                            <Trigger Property="IsMouseOver"
+                                                                                     Value="True">
+                                                                                <Setter TargetName="ThumbBorder"
+                                                                                        Property="Background"
+                                                                                        Value="#7895B0"/>
+                                                                            </Trigger>
+                                                                        </ControlTemplate.Triggers>
+                                                                    </ControlTemplate>
+                                                                </Thumb.Template>
+                                                            </Thumb>
+                                                        </Track.Thumb>
+
+                                                        <Track.IncreaseRepeatButton>
+                                                            <RepeatButton Command="ScrollBar.PageDownCommand"
+                                                                          Opacity="0"
+                                                                          Focusable="False"/>
+                                                        </Track.IncreaseRepeatButton>
+
+                                                    </Track>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.Resources>
+
+
+
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="HorizontalContentAlignment"
+                                            Value="Stretch"/>
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Margin" Value="0,0,0,2"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Border x:Name="ItemBorder"
+                                                        Background="Transparent"
+                                                        BorderBrush="Transparent"
+                                                        BorderThickness="1"
+                                                        CornerRadius="8"
+                                                        Padding="8">
+                                                    <ContentPresenter
+                                                        ContentSource="Content"
+                                                        HorizontalAlignment="Stretch"
+                                                        VerticalAlignment="Center"/>
+                                                </Border>
+
+                                                <ControlTemplate.Triggers>
+                                                    <MultiTrigger>
+                                                        <MultiTrigger.Conditions>
+                                                            <Condition Property="IsSelected"
+                                                                       Value="True"/>
+                                                            <Condition Property="IsKeyboardFocusWithin"
+                                                                       Value="True"/>
+                                                        </MultiTrigger.Conditions>
+
+                                                        <Setter TargetName="ItemBorder"
+                                                                Property="Background"
+                                                                Value="#263F53"/>
+                                                        <Setter TargetName="ItemBorder"
+                                                                Property="BorderBrush"
+                                                                Value="#45627B"/>
+                                                    </MultiTrigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+
+                            <ListBox.ItemTemplate>
+
+
+                                <DataTemplate>
+                                    <StackPanel Margin="4,2">
+                                        <TextBlock Text="{Binding FileName}"
+                                                   ToolTip="{Binding FilePath}"
+                                                   Foreground="White"
+                                                   FontSize="13"
+                                                   TextTrimming="CharacterEllipsis"/>
+
+                                        <Grid Margin="0,8,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="160"/>
+                                                <ColumnDefinition Width="45"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Text="Volume"
+                                                       Foreground="#AAB7C8"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,10,0"/>
+
+
+                                            <Slider Grid.Column="1"
+                                                    Style="{StaticResource ChaosVolumeSlider}"
+                                                    Minimum="0"
+                                                    Maximum="100"
+                                                    TickFrequency="1"
+                                                    IsSnapToTickEnabled="True"
+                                                    Value="{Binding Volume, Mode=TwoWay}"
+                                                    VerticalAlignment="Center"/>
+
+
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding Volume, StringFormat={}{0}%}"
+                                                       Foreground="#AAB7C8"
+                                                       HorizontalAlignment="Right"
+                                                       VerticalAlignment="Center"/>
+
+
+                                            <CheckBox Grid.Column="3"
+                                                      Content="Enabled"
+                                                      IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                                                      Foreground="White"
+                                                      HorizontalAlignment="Left"
+                                                      Margin="10,0,0,0"
+                                                      VerticalAlignment="Center"/>
+
+                                        </Grid>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+
+                        <StackPanel Grid.Row="4"
+                                    Orientation="Horizontal">
+
+                            <Button Content="Add Sounds"
+                                    Style="{StaticResource RoundButton}"
+                                    Click="AddSoundsButton_Click"
+                                    Margin="0,0,10,0"/>
+
+
+
+                            <Button Content="Remove Selected"
+                                    Style="{StaticResource RoundButton}"
+                                    Click="RemoveSelectedButton_Click"
+                                    Margin="0,0,10,0"/>
+
+
+
+                            <Button Content="Test Sound"
+                                    Style="{StaticResource RoundButton}"
+                                    Click="TestSoundButton_Click"/>
+
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Footer -->
+                <TextBlock Grid.Row="5"
+                        Text="Start Crossbar Chaos before launching Rocket League."
+                        Foreground="#AAB7C8"
+                        FontSize="11"
+                        HorizontalAlignment="Center"
+                        Margin="0,14,0,0"/>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
