@@ -75,7 +75,7 @@ public partial class MainWindow
             reader.Volume = (float)Math.Clamp(
                 (sound.Volume / 100.0) * volumeMultiplier,
                 0.0,
-                1.0);
+                2.0);
 
             using var enumerator = new MMDeviceEnumerator();
 

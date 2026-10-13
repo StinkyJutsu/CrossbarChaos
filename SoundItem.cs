@@ -20,7 +20,7 @@ public sealed class SoundItem : INotifyPropertyChanged
         get => _volume;
         set
         {
-            int newVolume = Math.Clamp(value, 0, 100);
+            int newVolume = Math.Clamp(value, 0, 200);
 
             if (_volume == newVolume)
                 return;

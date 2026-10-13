@@ -27,12 +27,6 @@ internal sealed class StatsApiConfiguration
 
     public string Enable()
     {
-        if (Process.GetProcessesByName("RocketLeague").Length > 0 ||
-            Process.GetProcessesByName("RocketLeague_EAC").Length > 0)
-        {
-            return "Rocket League is already running. Close the game, then restart Crossbar Chaos to enable the API.";
-        }
-
         var results = new List<string>();
         var installations = RocketLeagueInstallationDetector.Find();
 
@@ -44,9 +38,25 @@ internal sealed class StatsApiConfiguration
 
             try
             {
-                // Restore an unfinished session before changing anything.
+                // Preserve the original backup until uninstall.
                 if (File.Exists(journal))
-                    RestoreOne(journal);
+                {
+                    BackupRecord saved = JsonSerializer.Deserialize<BackupRecord>(
+                        File.ReadAllText(journal))
+                        ?? throw new InvalidDataException("Invalid recovery record.");
+
+                    if (string.IsNullOrWhiteSpace(saved.FilePath) ||
+                        !File.Exists(saved.FilePath) ||
+                        !File.ReadAllBytes(saved.FilePath).SequenceEqual(
+                            Convert.FromBase64String(saved.Enabled)))
+                    {
+                        throw new IOException(
+                            "Saved API configuration no longer matches the game file. Setup skipped to protect the original backup.");
+                    }
+
+                    results.Add($"{game.Platform}: API already configured.");
+                    continue;
+                }
 
                 string configFolder = Path.Combine(game.Path, "TAGame", "Config");
                 string custom = Path.Combine(configFolder, "TAStatsAPI.ini");
@@ -95,20 +105,66 @@ internal sealed class StatsApiConfiguration
 
     public string Restore()
     {
-        if (!Directory.Exists(_backupFolder))
-            return "";
-
         var errors = new List<string>();
 
-        foreach (string journal in Directory.GetFiles(_backupFolder, "*.json"))
+        var folders = new HashSet<string>(
+            StringComparer.OrdinalIgnoreCase)
         {
-            try
+            _backupFolder
+        };
+
+        try
+        {
+            using var profiles =
+                Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
+                    @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList");
+
+            if (profiles != null)
             {
-                RestoreOne(journal);
+                foreach (string sid in profiles.GetSubKeyNames())
+                {
+                    using var profile = profiles.OpenSubKey(sid);
+
+                    if (profile?.GetValue("ProfileImagePath")
+                        is not string root ||
+                        string.IsNullOrWhiteSpace(root))
+                        continue;
+
+                    string path =
+                        Environment.ExpandEnvironmentVariables(root);
+
+                    folders.Add(Path.Combine(
+                        path,
+                        "AppData",
+                        "Local",
+                        "CrossbarChaos",
+                        "StatsApiRecovery"));
+                }
             }
-            catch (Exception ex)
+        }
+        catch (Exception ex)
+        {
+            errors.Add(
+                $"Windows profile lookup failed: {ex.Message}");
+        }
+
+        foreach (string folder in folders)
+        {
+            foreach (string name in new[] { "Steam.json", "Epic.json" })
             {
-                errors.Add($"{Path.GetFileName(journal)}: {ex.Message}");
+                string journal = Path.Combine(folder, name);
+
+                if (!File.Exists(journal))
+                    continue;
+
+                try
+                {
+                    RestoreOne(journal);
+                }
+                catch (Exception ex)
+                {
+                    errors.Add($"{journal}: {ex.Message}");
+                }
             }
         }
 
@@ -124,8 +180,53 @@ internal sealed class StatsApiConfiguration
         if (string.IsNullOrWhiteSpace(backup.FilePath))
             throw new InvalidDataException("Missing recovery path.");
 
+        string targetPath = Path.GetFullPath(backup.FilePath);
+
+        string configFolder = Path.GetDirectoryName(targetPath)
+            ?? throw new InvalidDataException("Invalid configuration path.");
+
+        string gameDataFolder = Path.GetDirectoryName(configFolder)
+            ?? throw new InvalidDataException("Invalid configuration path.");
+
+        string gameFolder = Path.GetDirectoryName(gameDataFolder)
+            ?? throw new InvalidDataException("Invalid installation path.");
+
+        bool validTarget =
+            (string.Equals(
+                Path.GetFileName(targetPath),
+                "TAStatsAPI.ini",
+                StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(
+                Path.GetFileName(targetPath),
+                "DefaultStatsAPI.ini",
+                StringComparison.OrdinalIgnoreCase)) &&
+            string.Equals(
+                Path.GetFileName(configFolder),
+                "Config",
+                StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(
+                Path.GetFileName(gameDataFolder),
+                "TAGame",
+                StringComparison.OrdinalIgnoreCase) &&
+            (File.Exists(Path.Combine(
+                gameFolder, "Binaries", "Win64", "RocketLeague.exe")) ||
+             File.Exists(Path.Combine(
+                gameFolder, "Binaries", "Win64", "RocketLeague_EAC.exe")));
+
+        if (!validTarget)
+            throw new InvalidDataException(
+                "Recovery target is not a recognized Rocket League Stats API configuration.");
+
         byte[] original = Convert.FromBase64String(backup.Original);
         byte[] enabled = Convert.FromBase64String(backup.Enabled);
+
+        byte[] expectedEnabled = EnableRate(original, out bool alreadyEnabled);
+
+        if (alreadyEnabled || !enabled.SequenceEqual(expectedEnabled))
+        {
+            throw new InvalidDataException(
+                "Recovery data does not match the expected Stats API modification.");
+        }
 
         if (!File.Exists(backup.FilePath))
         {

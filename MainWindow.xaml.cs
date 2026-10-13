@@ -53,18 +53,6 @@ public partial class MainWindow : Window
         Closing += (_, _) =>
         {
             _shutdown.Cancel();
-
-            string errors = _statsApi.Restore();
-
-            if (!string.IsNullOrEmpty(errors))
-            {
-                MessageBox.Show(
-                    this,
-                    errors,
-                    "Stats API Restoration Warning",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-            }
         };
     }
 
@@ -305,6 +293,25 @@ public partial class MainWindow : Window
         object sender, RoutedEventArgs e)
     {
         WindowState = WindowState.Minimized;
+    }
+
+    private void MaximizeButton_Click(
+        object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
+    }
+
+    private void HelpButton_Click(
+        object sender, RoutedEventArgs e)
+    {
+        var helpWindow = new HelpWindow
+        {
+            Owner = this
+        };
+
+        helpWindow.ShowDialog();
     }
 
     private void CloseButton_Click(
